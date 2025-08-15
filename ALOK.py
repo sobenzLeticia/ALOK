@@ -8,6 +8,18 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Side, Font
 from openpyxl.utils import get_column_letter
 
+# Adicione no início do código
+import base64
+
+# Substitua as leituras de arquivo por:
+@st.cache_data
+def load_salas(uploaded_file):
+    return pd.read_excel(uploaded_file)
+
+@st.cache_data
+def load_turmas(uploaded_file):
+    return pd.read_excel(uploaded_file)
+
 # ================= INTERFACE =================
 st.set_page_config(page_title="Alocação de Turmas", layout="wide")
 st.title("📅 Sistema de Alocação de Turmas em Salas")
@@ -18,8 +30,8 @@ file_turmas = st.file_uploader("📂 Envie o arquivo de TURMAS", type=["xlsx"])
 if file_salas and file_turmas:
     if st.button("🚀 Rodar Alocação"):
         # ================= LEITURA =================
-        df_salas = pd.read_excel(file_salas)
-        df_turmas = pd.read_excel(file_turmas)
+        df_salas = load_salas(file_salas)
+        df_turmas = load_turmas(file_turmas)
 
         salas_data = df_salas["SALAS"].to_numpy()
         capacidade_data = df_salas["CAPACIDADE"].to_numpy()
@@ -237,3 +249,4 @@ if file_salas and file_turmas:
                 file_name=f"horarios_{sala_nome.replace(' ', '_')}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
