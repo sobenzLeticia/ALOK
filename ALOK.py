@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import datetime as dt
-import os
 from collections import defaultdict
 from io import BytesIO
 from openpyxl import Workbook
@@ -27,6 +26,13 @@ st.title("📅 Sistema de Alocação de Turmas em Salas")
 file_salas = st.file_uploader("📂 Envie o arquivo de SALAS", type=["xlsx"])
 file_turmas = st.file_uploader("📂 Envie o arquivo de TURMAS", type=["xlsx"])
 
+# Inicializar variáveis de sessão
+if "resultados" not in st.session_state:
+    st.session_state.resultados = None
+if "buffers_salas" not in st.session_state:
+    st.session_state.buffers_salas = {}
+
+# ================= PROCESSAMENTO =================
 if file_salas and file_turmas:
     if st.button("🚀 Rodar Alocação"):
         # ================= LEITURA =================
@@ -127,12 +133,8 @@ if file_salas and file_turmas:
         df_resultados.to_excel(buffer_geral, index=False)
         buffer_geral.seek(0)
 
-        st.download_button(
-            label="⬇️ Baixar Resultados Gerais",
-            data=buffer_geral,
-            file_name="Resultados_Gerais.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        # Salva no session_state
+        st.session_state.resultados = buffer_geral
 
         # ================= RESULTADOS POR SALA =================
         dias_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
@@ -174,6 +176,7 @@ if file_salas and file_turmas:
         alinhamento_centro = Alignment(horizontal='center', vertical='center', wrap_text=True)
         fonte_padrao = Font(size=10)
 
+        buffers_salas = {}
         for sala in salas_ct:
             sala_nome = sala["NOME"]
             wb = Workbook()
@@ -243,10 +246,25 @@ if file_salas and file_turmas:
             buffer_sala = BytesIO()
             wb.save(buffer_sala)
             buffer_sala.seek(0)
-            st.download_button(
-                label=f"⬇️ Baixar {sala_nome}",
-                data=buffer_sala,
-                file_name=f"horarios_{sala_nome.replace(' ', '_')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
 
+            buffers_salas[sala_nome] = buffer_sala
+
+        # Salva todos os buffers no session_state
+        st.session_state.buffers_salas = buffers_salas
+
+# ================= DOWNLOADS =================
+if st.session_state.resultados:
+    st.download_button(
+        label="⬇️ Baixar Resultados Gerais",
+        data=st.session_state.resultados,
+        file_name="Resultados_Gerais.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    for sala_nome, buffer_sala in st.session_state.buffers_salas.items():
+        st.download_button(
+            label=f"⬇️ Baixar {sala_nome}",
+            data=buffer_sala,
+            file_name=f"horarios_{sala_nome.replace(' ', '_')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
