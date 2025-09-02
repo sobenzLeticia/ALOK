@@ -46,7 +46,7 @@ if file_salas and file_turmas:
         turmas_data = df_turmas["DISCIPLINA"].to_numpy()
         demanda_data = df_turmas["PREVISÃO DE ALUNOS"].to_numpy()
         professor_data = df_turmas["PROFESSOR"].to_numpy()
-        dias_data = df_turmas["DIAS_PADRONIZADOS"].to_numpy()
+        dias_data = df_turmas["DIAS"].to_numpy()
         horarios_data = df_turmas["HORÁRIOS"].to_numpy()
 
         # Montar horários por turma
@@ -268,3 +268,4 @@ if st.session_state.resultados:
             file_name=f"horarios_{sala_nome.replace(' ', '_')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
