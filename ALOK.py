@@ -48,6 +48,7 @@ if file_salas and file_turmas:
         professor_data = df_turmas["PROFESSOR"].to_numpy()
         dias_data = df_turmas["DIAS"].to_numpy()
         horarios_data = df_turmas["HORÁRIOS"].to_numpy()
+        curso = df_turmas["Curso"].to_numpy()
 
         # Montar horários por turma
         horarios_turmas = []
@@ -73,6 +74,7 @@ if file_salas and file_turmas:
         disciplinas = []
         for i in range(len(turmas_data)):
             disciplinas.append({
+		        "CURSO": curso[i],
                 "CODIGO": cod_data[i],
                 "DISCIPLINA": turmas_data[i],
                 "CODIGO TURMA": cod_turma_data[i],
@@ -102,6 +104,7 @@ if file_salas and file_turmas:
 
             if melhor_sala:
                 alocacao.append({
+		            "CURSO": disc["CURSO"],
                     "CODIGO": disc["CODIGO"],
                     "DISCIPLINA": disc["DISCIPLINA"],
                     "SALA": melhor_sala["NOME"],
@@ -116,6 +119,7 @@ if file_salas and file_turmas:
                     melhor_sala["HORARIOS_OCUPADOS"].add(h)
             else:
                 alocacao.append({
+		            "CURSO": disc["CURSO"],
                     "CODIGO": disc["CODIGO"],
                     "DISCIPLINA": disc["DISCIPLINA"],
                     "SALA": None,
@@ -161,7 +165,7 @@ if file_salas and file_turmas:
         for aloc in alocacao:
             if aloc['SALA']:
                 sala_nome = aloc['SALA']
-                disciplina_info = f"{aloc['CODIGO']} - {aloc['DISCIPLINA']} - {aloc['CODIGO TURMA']} - {aloc['PROFESSOR']}"
+                disciplina_info = f'{aloc["CODIGO"]} - {aloc["DISCIPLINA"]} - {aloc["CODIGO TURMA"]} - {aloc["PROFESSOR"]} - {aloc["CURSO"]}'
                 horarios_blocos = [h.strip() for h in aloc['HORARIO'].split(',')]
                 for bloco in horarios_blocos:
                     if bloco:
@@ -193,7 +197,7 @@ if file_salas and file_turmas:
             for col, dia in enumerate(dias_semana, start=2):
                 ws.cell(row=2, column=col, value=dia).font = Font(bold=True)
 
-            for row, hora in enumerate(horas_minutos, start=2):
+            for row, hora in enumerate(horas_minutos, start=3):
                 ws.cell(row=row, column=1, value=hora)
 
             if sala_nome in horarios_por_sala:
@@ -207,14 +211,14 @@ if file_salas and file_turmas:
                     else: continue
                     for horario, info in horarios.items():
                         if horario in horas_minutos:
-                            row_idx = horas_minutos.index(horario) + 2
+                            row_idx = horas_minutos.index(horario) + 3
                             ws.cell(row=row_idx, column=col, value=info)
 
             # Mesclar células
             for col in range(2, len(dias_semana) + 2):
-                start_row = 2
-                current_value = ws.cell(row=2, column=col).value
-                for row in range(3, len(horas_minutos) + 2):
+                start_row = 3
+                current_value = ws.cell(row=3, column=col).value
+                for row in range(3, len(horas_minutos) + 3):
                     value = ws.cell(row=row, column=col).value
                     if value != current_value:
                         if current_value not in (None, "") and row - 1 > start_row:
@@ -222,12 +226,12 @@ if file_salas and file_turmas:
                                            end_row=row - 1, end_column=col)
                         start_row = row
                         current_value = value
-                if current_value not in (None, "") and len(horas_minutos) + 1 > start_row:
+                if current_value not in (None, "") and len(horas_minutos) + 2 > start_row:
                     ws.merge_cells(start_row=start_row, start_column=col,
-                                   end_row=len(horas_minutos) + 1, end_column=col)
+                                   end_row=len(horas_minutos) + 2, end_column=col)
 
             # Estilo
-            for row in ws.iter_rows(min_row=1, max_row=len(horas_minutos) + 1,
+            for row in ws.iter_rows(min_row=1, max_row=len(horas_minutos) + 2,
                                     min_col=1, max_col=len(dias_semana) + 1):
                 for cell in row:
                     cell.border = borda_fina
@@ -268,4 +272,3 @@ if st.session_state.resultados:
             file_name=f"horarios_{sala_nome.replace(' ', '_')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
